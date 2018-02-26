@@ -1,0 +1,23 @@
+@baseFontSize: 75;
+@rem: @baseFontSize * 1rem;
+
+.dpr-font(@fontSize) {
+  font-size: @fontSize;
+  [data-dpr="2"] & {
+    font-size: @fontSize * 2;
+  }
+}
+
+.border-1px {
+  position: relative;
+  &:after {
+    position: absolute;
+    content: "";
+    height: 1px;
+    background: #e8e8e8;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    transform: scaleY(.5);
+  }
+}
