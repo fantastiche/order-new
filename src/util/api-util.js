@@ -18,7 +18,7 @@ function structureApiUrl(path) {
  * @param params 参数
  * @param successCallback 成功回调
  */
-function httpRequest(api, params, successCallback) {
+function httpRequest(api, params, successCallback, token) {
   let url = structureApiUrl(api.path)
   // 若url中包含 :id ，则用data中的id值替换，并且将id从data中删除
   if (url.indexOf(':id') > -1) {
@@ -26,13 +26,27 @@ function httpRequest(api, params, successCallback) {
     delete params.id;
   }
   console.log(params)
-  axios({
-    method: api.method,
-    url: url,
-    params: params
-  }).then(function (res) {
-    successCallback(res)
-  })
+  if (token) {
+    axios({
+      method: api.method,
+      url: url,
+      params: params,
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    }).then(function (res) {
+      successCallback(res)
+    })
+  }
+  else {
+    axios({
+      method: api.method,
+      url: url,
+      params: params,
+    }).then(function (res) {
+      successCallback(res)
+    })
+  }
 }
 
 export default httpRequest

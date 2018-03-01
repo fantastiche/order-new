@@ -1,23 +1,21 @@
 import apiConfig from '../config/api-config'
 import $http from '../util/api-util'
 
-// 获取评分详情
-function detail (params, successCallback, failCallback) {
-  let api = apiConfig.detail
-  $http(api, params, function (res) {
-    successCallback(res.data)
-  })
+const CommonModel = {
+  // 登入
+  login: function (params, successCallback, failCallback, token) {
+    let api = apiConfig.login
+    $http(api, params, function (res) {
+      successCallback(res.data)
+    }, token)
+  },
+  // 扫码
+  goodsscan: function (params, successCallback, failCallback, token) {
+    let api = apiConfig.goodsscan
+    $http(api, params, function (res) {
+      successCallback(res.data)
+    }, token)
+  }
 }
 
-// 提交评分
-function handin (params, successCallback, failCallback) {
-  let api = apiConfig.handin
-  $http(api, params, function (res) {
-    successCallback(res.data)
-  })
-}
-
-export {
-  detail,
-  handin
-}
+export default CommonModel

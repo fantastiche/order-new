@@ -6,9 +6,7 @@ import 'lib-flexible'
 import router from './router'
 import App from './App'
 import {AlertPlugin, ToastPlugin} from 'vux'
-
-let ID = location.href.split('?')[1].split('=')[1]
-Vue.prototype.ID = ID
+import store from './store'
 
 FastClick.attach(document.body)
 
@@ -27,5 +25,6 @@ router.beforeEach((to, from, next) => {
 /* eslint-disable no-new */
 new Vue({
   router,
+  store,
   render: h => h(App)
 }).$mount('#app-box')

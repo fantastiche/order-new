@@ -3,13 +3,13 @@
  * @type {{ name : {path: string, method: string} }}
  */
 const common = {
-  detail: {
-    path: 'detail.do',
+  goodsscan: {
+    path: 'goodsscan.do',
     method: 'GET'
   },
-  handin: {
-    path: 'handin.do',
-    method: 'POST'
+  login: {
+    path: 'login.do',
+    method: 'GET'
   }
 }
 
