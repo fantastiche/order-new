@@ -1,6 +1,6 @@
 <template>
   <div class="content-wrapper">
-    <scroll ref="wrapper" class="order-detail-content">
+    <scroll ref="wrapper" class="scroll-content">
       <div class="content">
         <div class="header">
           <div class="header-btn">
@@ -242,7 +242,7 @@
     height: 95/@rem;
   }
 
-  .order-detail-content {
+  .scroll-content {
     height: 100%;
     overflow: hidden;
   }
