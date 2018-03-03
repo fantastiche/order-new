@@ -26,26 +26,39 @@ function httpRequest(api, params, successCallback, token) {
     delete params.id;
   }
   console.log(params)
-  if (token) {
+  if (localStorage.getItem('token')) {
     axios({
       method: api.method,
       url: url,
       params: params,
       headers: {
-        'Authorization': 'Bearer ' + token
+        'Authorization': 'Bearer ' + localStorage.getItem('token')
       }
     }).then(function (res) {
       successCallback(res)
     })
-  }
-  else {
-    axios({
-      method: api.method,
-      url: url,
-      params: params,
-    }).then(function (res) {
-      successCallback(res)
-    })
+  } else {
+    if (token) {
+      axios({
+        method: api.method,
+        url: url,
+        params: params,
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
+      }).then(function (res) {
+        successCallback(res)
+      })
+    }
+    else {
+      axios({
+        method: api.method,
+        url: url,
+        params: params,
+      }).then(function (res) {
+        successCallback(res)
+      })
+    }
   }
 }
 

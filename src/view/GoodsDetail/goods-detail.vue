@@ -7,7 +7,7 @@
             <img src="./icon_order.png" alt="" class="icon-order">
             <span>我的订单</span>
           </div>
-          <div class="header-btn">
+          <div class="header-btn" @click="goHome">
             <img src="./icon_home2.png" alt="" class="icon-home">
             <span>返回首页</span>
           </div>
@@ -15,39 +15,42 @@
         <swiper :list="picList" style="width:100%;margin:0 auto;" :aspect-ratio="750/750" dots-position="center"
                 :show-desc-mask="false" class="border-1px"></swiper>
         <div class="title border-1px">
-          <div class="title-name">晴彩炫色眼影</div>
+          <div class="title-name">{{goodsname}}</div>
           <div class="title-price">
             <span class="title-price-symbol">￥</span>
-            <span class="title-price-num">99.00</span>
+            <span class="title-price-num">{{adviceprice}}.00</span>
           </div>
         </div>
         <div class="item border-1px" v-for="(item,index) in list">
-          <div class="item-title">玫红色</div>
+          <div class="item-title">{{item.color}}</div>
           <div class="item-ctrl">
-            <span class="item-ctrl-btn">-</span>
-            <div class="item-ctrl-num">100</div>
-            <span class="item-ctrl-btn">+</span>
+            <span class="item-ctrl-btn" @click="sub(item,index)">-</span>
+            <input type="number" class="item-ctrl-num" v-model="item.num" @click="inputNum(item,index)"
+                   @blur="changeNum(item,index)">
+            <span class="item-ctrl-btn" @click="add(item,index)">+</span>
           </div>
         </div>
         <div class="blank"></div>
       </div>
     </scroll>
     <div class="footer">
-      <div class="btn-shopping-cart">
+      <div class="btn-shopping-cart" @click="goShoppingCart">
         <div class="btn-shopping-cart-img">
           <img src="./icon_shopping1.png" alt="">
-          <span class="number">9</span>
+          <transition name="bounce">
+            <span class="number" v-show="num>0&&flag">{{num}}</span>
+          </transition>
         </div>
         <span>购物车</span>
       </div>
       <div class="footer-total">
         <div class="footer-total-price">
           <span>合计 :</span>
-          <span>￥9900.00</span>
+          <span>￥{{totalPrice}}.00</span>
         </div>
-        <div class="footer-total-num">共100件</div>
+        <div class="footer-total-num">共{{num}}件</div>
       </div>
-      <div class="footer-add">加入购物车</div>
+      <div class="footer-add" @click="addCart">加入购物车</div>
     </div>
   </div>
 </template>
@@ -55,6 +58,7 @@
 <script>
   import Scroll from '../../components/Scroll/Scroll'
   import {Swiper} from 'vux'
+  import CommonModel from '../../models/common-model'
 
   const imgList = [
     'https://cs1.gzqqs.com/qqs/jsp/weixin/demo/pic.jpg',
@@ -74,11 +78,119 @@
     data: function () {
       return {
         picList: demoList,
-        list: [0, 0, 0, 0, 0]
+        list: [],
+        goodsname: '',
+        adviceprice: '',
+        totalPrice: 0,
+        totalNum: 0,
+        num: 0,
+        flag: false,
+        shopCode: 'B00009'
       }
     },
-    methods: {},
+    methods: {
+      goHome: function () {
+        this.$router.push({
+          path: '/index'
+        })
+      },
+      goShoppingCart: function () {
+        this.$router.push({
+          path: '/shoppingCartList',
+          query: {
+            shopCode: this.shopCode
+          }
+        })
+      },
+      inputNum: function (item, index) {
+        if (item.num === 0) {
+          item.num = ''
+          this.$set(this.list, index, item)
+        }
+      },
+      changeNum: function (item, index) {
+        if (item.num === '') {
+          item.num = 0
+          this.$set(this.list, index, item)
+        }
+      },
+      sub: function (item, index) {
+        if (item.num > 0) {
+          item.num--
+          this.$set(this.list, index, item)
+        }
+      },
+      add: function (item, index) {
+        item.num++
+        this.$set(this.list, index, item)
+      },
+      addCart: function () {
+        let that = this
+        let goods = []
+        this.list.forEach((item, index, array) => {
+          if (item.num > 0) {
+            this.num += item.num
+            goods.push({
+              goodsId: item.goodsId,
+              num: item.num
+            })
+          }
+        })
+        let params = {
+          shopcode: 'B00009',
+          goods: JSON.stringify(goods)
+        }
+        CommonModel.add(params, (res) => {
+          params = {
+            shopcode: 'B00009'
+          }
+          CommonModel.cartList(params, (res) => {
+            console.log(res)
+            that.totalPrice = res.pd.totalAmount
+            that.num = 0
+            res.pd.items.forEach((item, index, array) => {
+              that.num += item.num
+            })
+            this.flag = false
+            setTimeout(() => {
+              this.flag = true
+            }, 10)
+          })
+        })
+        this.list.forEach((item, index, array) => {
+          item.num = 0
+        })
+      }
+    },
     created: function () {
+      let that = this
+      let params = {
+        barcode: this.$route.query.barcode
+      }
+      console.log(params)
+      CommonModel.goodsscan(params, function (res) {
+        console.log(res)
+        that.list = res.pd
+        that.adviceprice = that.list[0].adviceprice
+        that.goodsname = that.list[0].goodsname
+        that.list.forEach((item, index, array) => {
+          item.num = 0
+        })
+      }, function (res) {
+      }, localStorage.getItem('token'))
+      params = {
+        shopcode: 'B00009'
+      }
+      CommonModel.cartList(params, (res) => {
+        console.log(res)
+        that.totalPrice = res.pd.totalAmount
+        res.pd.items.forEach((item, index, array) => {
+          that.num += item.num
+        })
+        if (that.num > 0) {
+          that.flag = true
+        }
+      })
     }
   }
 </script>
@@ -107,6 +219,7 @@
           border-radius: 50%;
           width: 110/@rem;
           height: 110/@rem;
+          box-shadow: 0 5/@rem 8/@rem 0 rgba(0, 0, 0, 0.3);
           span {
             .dpr-font(10px);
             color: #333;
@@ -154,8 +267,11 @@
           .item-ctrl-num {
             width: 114/@rem;
             line-height: 56/@rem;
+            border: none;
             border-top: 1px solid #cccccc;
             border-bottom: 1px solid #cccccc;
+            text-align: center;
+            outline: none;
           }
           .item-ctrl-btn:first-child {
             border-radius: 8/@rem 0 0 8/@rem;
@@ -188,7 +304,7 @@
           width: 40/@rem;
           height: 40/@rem;
           .number {
-            right: -14/@rem;
+            left: 20/@rem;
             top: -14/@rem;
             z-index: 9999;
           }
@@ -268,6 +384,26 @@
     text-align: center;
     color: #ffffff !important;
     border-radius: 14/@rem;
+  }
+
+  .bounce-enter-active {
+    animation: bounce-in .5s;
+  }
+
+  .bounce-leave-active {
+    animation: bounce-in .5s reverse;
+  }
+
+  @keyframes bounce-in {
+    0% {
+      transform: scale(0);
+    }
+    50% {
+      transform: scale(1.5);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 </style>
 <style>

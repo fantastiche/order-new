@@ -8,20 +8,20 @@
       <img src="./pic_phone.png" alt="">
     </div>
     <div class="btn-wrapper">
-      <button class="btn-scan">扫一扫商品条码</button>
+      <button class="btn-scan" @click="scan">扫一扫商品条码</button>
       <div class="or">
         <span>或</span>
       </div>
       <div class="btn-input">
-        <input type="text" placeholder="请输入商品条码">
-        <button>确认</button>
+        <input type="text" v-model="barcode" placeholder="请输入商品条码">
+        <button @click="sub">确认</button>
       </div>
     </div>
     <div class="footer">
       <div class="btn-shopping-cart">
         <div class="btn-shopping-cart-img">
           <img src="./icon_shopping1.png" alt="">
-          <span class="number">9</span>
+          <span class="number" v-show="num>0">{{num}}</span>
         </div>
         <span>购物车</span>
       </div>
@@ -36,9 +36,30 @@
 
   export default {
     data: function () {
-      return {}
+      return {
+        num: 0,
+        barcode: ''
+      }
     },
     methods: {
+      sub: function () {
+        let params = {
+          barcode: this.barcode
+        }
+        this.$router.push({
+          path: '/goodsDetail',
+          query: params
+        })
+      },
+      scan: function () {
+        let params = {
+          barcode: '10125908'
+        }
+        this.$router.push({
+          path: '/goodsDetail',
+          query: params
+        })
+      }
 //      scan: function () {
 //        let xhr = new XMLHttpRequest()
 //        xhr.open('get', 'https://cs1.gzqqs.com/qqs/weixin/shareToFriend.do?url=https://cs1.gzqqs.com/qqs/jsp/weixin/orderNew/dist/#/')
@@ -87,20 +108,22 @@
 //      }
     },
     created: function () {
+      let that = this
       let params = {
-        USERNAME: 'B00009',
-        PASSWORD: '888'
+        username: 'B00009',
+        password: '888'
       }
       CommonModel.login(params, function (res) {
         console.log(res)
         localStorage.setItem('token', res.token)
         params = {
-          BARCODE: '10125908'
+          shopcode: 'B00009'
         }
-        CommonModel.goodsscan(params, function (res) {
-          console.log(res)
-        }, function (res) {
-        }, res.token)
+        CommonModel.cartList(params, (res) => {
+          res.pd.items.forEach((item, index, array) => {
+            that.num += item.num
+          })
+        })
       })
     }
   }
@@ -215,7 +238,7 @@
           width: 40/@rem;
           height: 40/@rem;
           .number {
-            right: -14/@rem;
+            left: 15/@rem;
             top: -14/@rem;
             z-index: 9999;
           }

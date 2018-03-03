@@ -23,6 +23,7 @@
     width: 100%;
     overflow-y: hidden;
     position: fixed;
+    font-size: 100%;
   }
 
   #app {
@@ -33,6 +34,10 @@
 
   body {
     background-color: #fbf9fe;
+  }
+
+  button {
+    outline: none;
   }
 </style>
 <style>
