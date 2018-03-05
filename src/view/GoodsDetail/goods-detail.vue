@@ -3,7 +3,7 @@
     <scroll ref="wrapper" class="scroll-content">
       <div class="content">
         <div class="header">
-          <div class="header-btn">
+          <div class="header-btn" @click="goOrder">
             <img src="./icon_order.png" alt="" class="icon-order">
             <span>我的订单</span>
           </div>
@@ -94,6 +94,11 @@
           path: '/index'
         })
       },
+      goOrder: function () {
+        this.$router.push({
+          path: '/orderList'
+        })
+      },
       goShoppingCart: function () {
         this.$router.push({
           path: '/shoppingCartList',
@@ -176,21 +181,26 @@
         that.list.forEach((item, index, array) => {
           item.num = 0
         })
+        params = {
+          shopcode: localStorage.getItem('shopcode')
+        }
+        CommonModel.cartList(params, (res) => {
+          console.log(res)
+          that.totalPrice = res.pd.totalAmount
+          res.pd.items.forEach((item, index, array) => {
+            that.num += item.num
+            that.list.forEach((item2, index2, array2) => {
+              if (item2.goodsId === item.goodsId) {
+                item2.num = item.num
+              }
+            })
+          })
+          if (that.num > 0) {
+            that.flag = true
+          }
+        })
       }, function (res) {
       }, localStorage.getItem('token'))
-      params = {
-        shopcode: 'B00009'
-      }
-      CommonModel.cartList(params, (res) => {
-        console.log(res)
-        that.totalPrice = res.pd.totalAmount
-        res.pd.items.forEach((item, index, array) => {
-          that.num += item.num
-        })
-        if (that.num > 0) {
-          that.flag = true
-        }
-      })
     }
   }
 </script>

@@ -25,7 +25,7 @@
               <img src="./icon_shopping2.png" alt="">
               <span>已购商品</span>
             </div>
-            <div @click="edit">编辑</div>
+            <div></div>
           </div>
           <div class="goods-list-body">
             <div class="goods-list-body-item" v-for="(item, index) in list">
@@ -51,27 +51,36 @@
             <span>备注</span>
           </div>
           <div class="remark-body">
-            <textarea placeholder="(选填)" v-model="remark"></textarea>
+            <textarea readonly v-model="remark"></textarea>
           </div>
         </div>
       </div>
     </scroll>
     <div class="confirm-wrapper">
-      <div class="confirm-info">
-        <div class="confirm-info-left">
-          <div>
-            <span>原价:</span>
-            <span>￥{{totalPrice}}.00</span>
-          </div>
-          <div>
-            <span>折扣价:</span>
-            <span>￥{{cutPrice}}</span>
-          </div>
-        </div>
-        <div class="confirm-info-right">共{{num}}件</div>
+      <div class="confirm-btn" v-show="status===0">
+        <button @click="cancel" class="btn-cancel">取消订单</button>
       </div>
       <div class="confirm-btn">
-        <button @click="confirm">确认订单</button>
+        <button @click="copyOrder">再次下单</button>
+      </div>
+    </div>
+    <div class="mask" v-show="popState" @click="hidePop">
+    </div>
+    <div class="store-wrapper" v-show="popState">
+      <div class="store-wrapper-title">
+        <span>请选择门店</span>
+        <img src="./icon_close.png" alt="" @click="hidePop">
+      </div>
+      <scroll class="list-wrapper">
+        <div class="store-list">
+          <div class="store-list-item" v-for="(item, index) in stores">
+            <span class="choose-off" :class="{'choose-on':item.checked}" @click="choose(item, index)"></span>
+            <span class="store-list-item-title">{{item.shopname}}</span>
+          </div>
+        </div>
+      </scroll>
+      <div class="store-btn">
+        <button @click="confirmStore">确定</button>
       </div>
     </div>
   </div>
@@ -93,13 +102,51 @@
         cutPrice: 0,
         totalPrice: 0,
         num: 0,
-        remark: ''
+        remark: '',
+        stores: [],
+        popState: false,
+        status: 0,
+        business: '',
+        shopcode: '',
+        shopname: ''
       }
     },
     methods: {
-      edit: function () {
-        this.$router.push({
-          path: '/shoppingCartList'
+      copyOrder: function () {
+        this.popState = true
+      },
+      hidePop: function () {
+        this.popState = false
+      },
+      choose: function (item, index) {
+        this.stores.forEach((store, i, array) => {
+          store.checked = false
+        })
+        item.checked = !item.checked
+        this.$set(this.stores, index, item)
+      },
+      confirmStore: function () {
+        let shopcode
+        this.stores.forEach((item, index, array) => {
+          if (item.checked === true) {
+            shopcode = item.shopcode
+          }
+        })
+        console.log(shopcode)
+        this.popState = false
+        let goods = []
+        this.list.forEach((item, index, array) => {
+          goods.push({
+            goodsId: item.goodsId,
+            num: item.num
+          })
+        })
+        let params = {
+          shopcode: shopcode,
+          goods: JSON.stringify(goods)
+        }
+        CommonModel.edit(params, (res) => {
+          console.log(res)
         })
       },
       goHome: function () {
@@ -107,16 +154,15 @@
           path: '/index'
         })
       },
-      confirm: function () {
-        let title = '确认订单后将无法修改，请确保您的订单正确再点击确认！'
+      cancel: function () {
+        let title = '确定需要取消订单吗？确认后无法修改！'
         this.$emit('showMask', title)
       },
       submit: function () {
         let params = {
-          shopcode: this.$route.query.shopCode,
-          remark: this.remark
+          orderno: this.$route.query.orderNo
         }
-        CommonModel.submit(params, (res) => {
+        CommonModel.orderCancel(params, (res) => {
           this.$emit('hideMask')
           this.$router.push({
             path: '/orderList'
@@ -126,32 +172,27 @@
     },
     created: function () {
       this.$nextTick(() => {
-        this.business = localStorage.getItem('business')
-        this.shopcode = localStorage.getItem('shopcode')
-        this.shopname = localStorage.getItem('shopname')
       })
       let that = this
       let params = {
+        orderno: this.$route.query.orderNo
+      }
+      CommonModel.orderDetail(params, (res) => {
+        console.log(res)
+        that.list = res.pd.items
+        that.business = localStorage.getItem('business')
+        that.shopcode = localStorage.getItem('shopcode')
+        that.shopname = localStorage.getItem('shopname')
+        that.remark = res.pd.remark
+        that.status = res.pd.order_status
+      })
+      params = {
         shopcode: localStorage.getItem('shopcode')
       }
-      console.log(params)
-      CommonModel.getShopDiscount(params, (res) => {
-        console.log(res)
-        that.cutList = res.pd
-        CommonModel.cartList(params, (res) => {
-          console.log(res)
-          that.totalPrice = res.pd.totalAmount
-          that.list = res.pd.items
-          that.list.forEach((item, index, array) => {
-            that.num += item.num
-            that.cutList.forEach((item2, index2, array2) => {
-              if (item.categoryId === item2.CATEGORYID.toString()) {
-                let cutPrice = item.price * (item2.ZK / 100) * item.num
-                console.log(cutPrice)
-                that.cutPrice += cutPrice
-              }
-            })
-          })
+      CommonModel.otherStore(params, (res) => {
+        that.stores = res.pd
+        that.stores.forEach((item, index, array) => {
+          item.checked = false
         })
       })
     }
@@ -336,41 +377,98 @@
       display: flex;
       background: #ffffff;
       border-top: 1/@rem solid #e5e5e5;
-      .confirm-info {
-        flex-grow: 1;
-        padding: 16/@rem 20/@rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        .dpr-font(14px);
-        .confirm-info-left {
-          div {
-            span:first-child {
-              color: #333333;
-            }
-            span:nth-child(2) {
-              color: #e54028;
-            }
-          }
-          div:nth-child(2) {
-            span:nth-child(2) {
-              font-weight: bold;
-            }
-          }
-        }
-        .confirm-info-right {
-          color: #777777;
-        }
-      }
       .confirm-btn {
+        flex-grow: 1;
         button {
-          height: 100%;
+          width: 100%;
+          height: 100/@rem;
           border: none;
-          width: 236/@rem;
           .dpr-font(18px);
           color: #ffffff;
           background: #e54028;
         }
+        .btn-cancel {
+          background: #fc9613;
+        }
+      }
+    }
+  }
+
+  .mask {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10010;
+  }
+
+  .store-wrapper {
+    width: 600/@rem;
+    height: 820/@rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    background: #ffffff;
+    border-radius: 20/@rem;
+    z-index: 10011;
+    .store-wrapper-title {
+      height: 100/@rem;
+      padding: 0 40/@rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .dpr-font(17px);
+      color: #333333;
+      border-bottom: 1/@rem solid #dbdbdb;
+      img {
+        width: 36/@rem;
+        height: 36/@rem;
+      }
+    }
+    .list-wrapper {
+      height: 530/@rem;
+      overflow: hidden;
+      margin: 30/@rem 0;
+      padding: 0 40/@rem;
+      .store-list {
+        .store-list-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 30/@rem;
+          .choose-off {
+            display: inline-block;
+            width: 40/@rem;
+            height: 40/@rem;
+            background: url("./icon_check_o.png") no-repeat center;
+            background-size: 40/@rem;
+          }
+          .choose-on {
+            background: url("./icon_check_red.png") no-repeat center !important;
+            background-size: 40/@rem !important;
+          }
+          .store-list-item-title {
+            .dpr-font(15px);
+            color: #333333;
+            margin-left: 40/@rem;
+          }
+        }
+      }
+    }
+    .store-btn {
+      padding: 0 40/@rem;
+      button {
+        width: 100%;
+        border: none;
+        height: 88/@rem;
+        background: #e54028;
+        color: #ffffff;
+        .dpr-font(17px);
+        border-radius: 44/@rem;
       }
     }
   }

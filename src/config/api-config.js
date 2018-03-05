@@ -19,6 +19,10 @@ const common = {
     path: 'cart/item/edit.do',
     method: 'GET'
   },
+  del: {
+    path: 'cart/del',
+    method: 'GET'
+  },
   cartList: {
     path: 'cart/list.do',
     method: 'GET'
@@ -29,6 +33,22 @@ const common = {
   },
   submit: {
     path: 'order/submit',
+    method: 'GET'
+  },
+  orderList: {
+    path: 'order/list',
+    method: 'GET'
+  },
+  orderDetail: {
+    path: 'order/detail',
+    method: 'GET'
+  },
+  orderCancel: {
+    path: 'order/cancel',
+    method: 'GET'
+  },
+  otherStore: {
+    path: 'shop/list',
     method: 'GET'
   }
 }

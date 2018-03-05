@@ -1,7 +1,7 @@
 <template>
   <div style="height: 100%">
     <transition :name="transitionName">
-      <router-view ref="child" class="child-view" v-on:showMask="showMask"></router-view>
+      <router-view ref="child" class="child-view" v-on:showMask="showMask" v-on:hideMask="hideMask"></router-view>
     </transition>
     <transition name="fade">
       <div class="mask" v-show="maskFlag" @click="hideMask"></div>

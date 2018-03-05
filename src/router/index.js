@@ -38,6 +38,10 @@ export default new Router({
         name: 'orderList',
         component: resolve => require(['../view/OrderList/order-list.vue'], resolve)
       }, {
+        path: '/orderDetail',
+        name: 'orderDetail',
+        component: resolve => require(['../view/OrderDetail/order-detail.vue'], resolve)
+      }, {
         path: '/orderMore',
         name: 'orderMore',
         component: resolve => require(['../view/OrderMore/order-more.vue'], resolve)

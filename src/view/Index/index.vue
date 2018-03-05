@@ -18,14 +18,14 @@
       </div>
     </div>
     <div class="footer">
-      <div class="btn-shopping-cart">
+      <div class="btn-shopping-cart" @click="goCart">
         <div class="btn-shopping-cart-img">
           <img src="./icon_shopping1.png" alt="">
           <span class="number" v-show="num>0">{{num}}</span>
         </div>
         <span>购物车</span>
       </div>
-      <div class="btn-order">我的订单</div>
+      <div class="btn-order" @click="myOrder">我的订单</div>
     </div>
   </div>
 </template>
@@ -42,6 +42,16 @@
       }
     },
     methods: {
+      goCart: function () {
+        this.$router.push({
+          path: '/shoppingCartList'
+        })
+      },
+      myOrder: function () {
+        this.$router.push({
+          path: '/orderList'
+        })
+      },
       sub: function () {
         let params = {
           barcode: this.barcode
@@ -116,6 +126,9 @@
       CommonModel.login(params, function (res) {
         console.log(res)
         localStorage.setItem('token', res.token)
+        localStorage.setItem('business', res.pd.business)
+        localStorage.setItem('shopcode', res.pd.shopcode)
+        localStorage.setItem('shopname', res.pd.shopname)
         params = {
           shopcode: 'B00009'
         }
