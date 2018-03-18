@@ -12,7 +12,7 @@ export default new Router({
       component: PageTransition,
       children: [{
         path: '/',
-        redirect: '/orderDetail'
+        redirect: '/login'
       }, {
         path: '/index',
         name: 'index',

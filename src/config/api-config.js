@@ -4,19 +4,19 @@
  */
 const common = {
   goodsscan: {
-    path: 'goodsscan.do',
+    path: 'goodsscan',
     method: 'GET'
   },
   login: {
-    path: 'login.do',
+    path: 'login',
     method: 'GET'
   },
   add: {
-    path: 'cart/add.do',
+    path: 'cart/add',
     method: 'GET'
   },
   edit: {
-    path: 'cart/item/edit.do',
+    path: 'cart/item/edit',
     method: 'GET'
   },
   del: {
@@ -24,11 +24,11 @@ const common = {
     method: 'GET'
   },
   cartList: {
-    path: 'cart/list.do',
+    path: 'cart/list',
     method: 'GET'
   },
   getShopDiscount: {
-    path: 'getShopDiscount.do',
+    path: 'getShopDiscount',
     method: 'GET'
   },
   submit: {

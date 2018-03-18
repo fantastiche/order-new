@@ -10,14 +10,14 @@
           <span>加盟商:</span><span class="title-info-detail">{{business}}</span>
         </div>
         <div>
-          <span>账&nbsp&nbsp&nbsp号:</span><span class="title-info-detail">{{shopcode}}</span>
+          <span>订单号:</span><span class="title-info-detail">{{orderNo}}</span>
         </div>
         <div>
           <span>门&nbsp&nbsp&nbsp店:</span><span class="title-info-detail">{{shopname}}</span>
         </div>
       </div>
     </div>
-    <scroll ref="wrapper" :startY="startY" class="scroll-content">
+    <scroll ref="wrapper" :startY="startY" class="scroll-content" :data="list">
       <div class="main-body">
         <div class="goods-list border-1px">
           <div class="goods-list-title border-1px">
@@ -30,7 +30,7 @@
           <div class="goods-list-body">
             <div class="goods-list-body-item" v-for="(item, index) in list">
               <div class="goods-list-body-item-wrapper border-1px-e5">
-                <img src="./pic.jpg" alt="">
+                <img :src="item.picture" alt="">
                 <div class="goods-list-body-item-info">
                   <div class="goods-list-body-item-info-title">
                     <span>{{item.goodsname}}</span>
@@ -83,16 +83,24 @@
         <button @click="confirmStore">确定</button>
       </div>
     </div>
+    <div v-transfer-dom>
+      <alert v-model="show" :title="'提示'" @on-hide="onHide">{{'您当前登入的门店与本单不一致，请返回首页切换门店！'}}</alert>
+    </div>
   </div>
 </template>
 
 <script>
   import Scroll from '../../components/Scroll/Scroll'
   import CommonModel from '../../models/common-model'
+  import {Alert, TransferDomDirective as TransferDom} from 'vux'
 
   export default {
     components: {
-      Scroll
+      Scroll,
+      Alert
+    },
+    directives: {
+      TransferDom
     },
     data: function () {
       return {
@@ -108,10 +116,17 @@
         status: 0,
         business: '',
         shopcode: '',
-        shopname: ''
+        shopname: '',
+        orderNo: '',
+        show: false
       }
     },
     methods: {
+      onHide: function () {
+        this.$router.push({
+          path: '/login'
+        })
+      },
       copyOrder: function () {
         this.popState = true
       },
@@ -127,6 +142,7 @@
       },
       confirmStore: function () {
         let shopcode
+        let that = this
         this.stores.forEach((item, index, array) => {
           if (item.checked === true) {
             shopcode = item.shopcode
@@ -136,17 +152,41 @@
         this.popState = false
         let goods = []
         this.list.forEach((item, index, array) => {
-          goods.push({
-            goodsId: item.goodsId,
-            num: item.num
-          })
+          if (item.goodsId !== 19000092 && item.goodsId !== 19000093 && item.goodsId !== 19000094 && item.goodsId !== 19000095 && item.goodsId !== 19000096) {
+            goods.push({
+              goodsId: item.goodsId,
+              num: item.num,
+              price: item.price,
+              categoryId: item.categoryId,
+              goodsname: item.goodsname,
+              color: item.color,
+              picture: item.picture,
+              je: parseInt(item.price) * parseInt(item.num),
+              fdiscount: item.fdiscount,
+              fprice: item.fprice,
+              smoney: 0
+            })
+          }
         })
         let params = {
           shopcode: shopcode,
           goods: JSON.stringify(goods)
         }
-        CommonModel.edit(params, (res) => {
-          console.log(res)
+        CommonModel.add(params, (res) => {
+          localStorage.setItem('shopcode', shopcode)
+          params = {
+            username: shopcode,
+            password: '888'
+          }
+          CommonModel.login(params, function (res) {
+            localStorage.setItem('token', res.pd.token)
+            localStorage.setItem('business', res.pd.business)
+            localStorage.setItem('shopcode', res.pd.shopcode)
+            localStorage.setItem('shopname', res.pd.shopname)
+            that.$router.push({
+              path: '/orderConfirm'
+            })
+          })
         })
       },
       goHome: function () {
@@ -178,13 +218,16 @@
         orderno: this.$route.query.orderNo
       }
       CommonModel.orderDetail(params, (res) => {
-        console.log(res)
+        if (res.pd.shopcode !== localStorage.getItem('shopcode')) {
+          that.show = true
+        }
         that.list = res.pd.items
         that.business = localStorage.getItem('business')
         that.shopcode = localStorage.getItem('shopcode')
         that.shopname = localStorage.getItem('shopname')
         that.remark = res.pd.remark
         that.status = res.pd.order_status
+        that.orderNo = res.pd.order_no
       })
       params = {
         shopcode: localStorage.getItem('shopcode')

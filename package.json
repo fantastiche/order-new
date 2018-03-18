@@ -21,7 +21,8 @@
     "weixin-js-sdk": "^1.2.0",
     "vue-lazyload": "^1.1.4",
     "jsonp": "^0.2.1",
-    "hmacsha1": "^1.0.0"
+    "hmacsha1": "^1.0.0",
+    "babel-polyfill": "^6.26.0"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.2",

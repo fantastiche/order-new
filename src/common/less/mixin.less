@@ -35,3 +35,17 @@
     transform: scaleY(.5);
   }
 }
+
+.border-1px-ccc {
+  position: relative;
+  &:after {
+    position: absolute;
+    content: "";
+    height: 1px;
+    background: #cccccc;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    transform: scaleY(.5);
+  }
+}

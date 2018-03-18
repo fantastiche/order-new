@@ -68,6 +68,7 @@
 
         if (this.listenScroll) {
           this.scroll.on('scroll', (pos) => {
+            console.log(pos)
             this.$emit('scroll', pos)
           })
         }
@@ -98,8 +99,8 @@
       scrollTo: function () {
         this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
       },
-      scrollToElement: function () {
-        this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
+      scrollToElement: function (el) {
+        this.scroll && this.scroll.scrollToElement(el)
       }
     },
     watch: {

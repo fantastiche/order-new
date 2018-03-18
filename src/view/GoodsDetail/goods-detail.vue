@@ -1,15 +1,15 @@
 <template>
   <div class="content-wrapper">
-    <scroll ref="wrapper" class="scroll-content">
+    <scroll ref="wrapper" class="scroll-content" :data="list">
       <div class="content">
         <div class="header">
           <div class="header-btn" @click="goOrder">
             <img src="./icon_order.png" alt="" class="icon-order">
             <span>我的订单</span>
           </div>
-          <div class="header-btn" @click="goHome">
-            <img src="./icon_home2.png" alt="" class="icon-home">
-            <span>返回首页</span>
+          <div class="header-btn" @click="scan">
+            <img src="./icon_scan.png" alt="" class="icon-home">
+            <span>扫商品码</span>
           </div>
         </div>
         <swiper :list="picList" style="width:100%;margin:0 auto;" :aspect-ratio="750/750" dots-position="center"
@@ -59,16 +59,7 @@
   import Scroll from '../../components/Scroll/Scroll'
   import {Swiper} from 'vux'
   import CommonModel from '../../models/common-model'
-
-  const imgList = [
-    'https://cs1.gzqqs.com/qqs/jsp/weixin/demo/pic.jpg',
-    'https://cs1.gzqqs.com/qqs/jsp/weixin/demo/pic.jpg'
-  ]
-
-  const demoList = imgList.map((one, index) => ({
-    url: 'javascript:',
-    img: one
-  }))
+  import wx from 'weixin-js-sdk'
 
   export default {
     components: {
@@ -77,7 +68,7 @@
     },
     data: function () {
       return {
-        picList: demoList,
+        picList: [],
         list: [],
         goodsname: '',
         adviceprice: '',
@@ -85,10 +76,73 @@
         totalNum: 0,
         num: 0,
         flag: false,
-        shopCode: 'B00009'
+        shopCode: '',
+        barcode: ''
       }
     },
     methods: {
+      scan: function () {
+        let that = this
+        this.$vux.loading.show({
+          text: 'Loading'
+        })
+        let xhr = new XMLHttpRequest()
+        xhr.open('get', 'https://cs1.gzqqs.com/qqs/weixin/shareToFriend.do?url=https://cs1.gzqqs.com/qqs/jsp/weixin/orderNew/dist/#/')
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4) {
+            if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304) {
+              let obj = JSON.parse(xhr.response).pd
+              let signature = obj.signature
+              let timestamp = obj.timeStamp
+              let appId = obj.appId
+              let noncestr = obj.nonceStr
+              // 配置信息
+              wx.config({
+                debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                appId: appId, // 必填，公众号的唯一标识
+                timestamp: timestamp, // 必填，生成签名的时间戳
+                nonceStr: noncestr, // 必填，生成签名的随机串
+                signature: signature, // 必填，签名
+                jsApiList: ['scanQRCode'] // 必填，需要使用的JS接口列表
+              })
+            } else {
+              // alert("微信分享签名出错: " + xhr.status);
+              console.log('微信分享签名出错: ' + xhr.status)
+            }
+          }
+        }
+        xhr.send()
+        wx.ready(function () {
+          wx.scanQRCode({
+            desc: 'scanQRCode desc',
+            needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+            scanType: ['qrCode', 'barCode'], // 可以指定扫二维码还是一维码，默认二者都有
+            success: function (res) {
+              that.$vux.loading.hide()
+              // 回调
+              if (res.resultStr.indexOf('/n') !== -1) {
+                that.barcode = res.resultStr.split('/')[0]
+              } else {
+                that.barcode = res.resultStr
+              }
+              let params = {
+                code: that.barcode
+              }
+//              that.$router.reload({
+//                path: '/goodsDetail',
+//                query: params
+//              })
+              that.init(params)
+            },
+            error: function (res) {
+              if (res.errMsg.indexOf('function_not_exist') > 0) {
+                alert('版本过低请升级')
+              }
+            }
+          })
+          that.$vux.loading.hide()
+        })
+      },
       goHome: function () {
         this.$router.push({
           path: '/index'
@@ -137,70 +191,110 @@
             this.num += item.num
             goods.push({
               goodsId: item.goodsId,
-              num: item.num
+              num: parseInt(item.num),
+              price: parseInt(item.adviceprice),
+              categoryId: item.categoryId,
+              goodsname: item.goodsname,
+              color: item.color,
+              picture: that.picture,
+              je: parseInt(item.adviceprice) * parseInt(item.num),
+              fdiscount: item.fdiscount,
+              fprice: item.fprice,
+              smoney: 0
             })
           }
         })
-        let params = {
-          shopcode: 'B00009',
-          goods: JSON.stringify(goods)
+        console.log(goods)
+        if (goods.length === 0) {
+          that.$vux.toast.show({
+            text: '商品数量不能为0！',
+            type: 'warn'
+          })
+        } else {
+          let params = {
+            shopcode: localStorage.getItem('shopcode'),
+            goods: JSON.stringify(goods)
+          }
+          CommonModel.add(params, (res) => {
+            that.$vux.toast.show({
+              text: '添加成功！'
+            })
+            params = {
+              shopcode: localStorage.getItem('shopcode')
+            }
+            CommonModel.cartList(params, (res) => {
+              console.log(res)
+              that.totalPrice = res.pd.totalAmount
+              that.num = 0
+              res.pd.items.forEach((item, index, array) => {
+                that.num += item.num
+              })
+              this.flag = false
+              setTimeout(() => {
+                this.flag = true
+              }, 10)
+            })
+          })
+          this.list.forEach((item, index, array) => {
+            item.num = 0
+          })
         }
-        CommonModel.add(params, (res) => {
+      },
+      init: function (params) {
+        let that = this
+        that.picList = []
+        that.num = 0
+        CommonModel.goodsscan(params, function (res) {
+          console.log(res)
+          if (res.pd.length === 0) {
+            console.log('aaa')
+            that.$vux.alert.show({
+              title: '提示',
+              content: '无此商品，请点击确定返回首页！',
+              onHide: function () {
+                that.$router.push({
+                  path: '/index'
+                })
+              }
+            })
+          }
+          that.list = res.pd
+          that.adviceprice = that.list[0].adviceprice
+          that.goodsname = that.list[0].goodsname
+          that.list.forEach((item, index, array) => {
+            item.num = 0
+            if (item.picture) {
+              let img = item.picture.split('?')[0] + '?x-oss-process=image/resize,m_lfit,h_750,w_750'
+              let imgSmall = item.picture.split('?')[0] + '?x-oss-process=image/resize,m_lfit,h_100,w_100'
+              that.picture = imgSmall
+              that.picList.push({
+                url: 'javascript:',
+                img: img
+              })
+            }
+          })
           params = {
-            shopcode: 'B00009'
+            shopcode: localStorage.getItem('shopcode')
           }
           CommonModel.cartList(params, (res) => {
             console.log(res)
             that.totalPrice = res.pd.totalAmount
-            that.num = 0
             res.pd.items.forEach((item, index, array) => {
-              that.num += item.num
+              that.num += parseInt(item.num)
             })
-            this.flag = false
-            setTimeout(() => {
-              this.flag = true
-            }, 10)
+            if (that.num > 0) {
+              that.flag = true
+            }
           })
-        })
-        this.list.forEach((item, index, array) => {
-          item.num = 0
-        })
+        }, function (res) {
+        }, localStorage.getItem('token'))
       }
     },
     created: function () {
-      let that = this
       let params = {
-        barcode: this.$route.query.barcode
+        code: this.$route.query.barcode
       }
-      console.log(params)
-      CommonModel.goodsscan(params, function (res) {
-        console.log(res)
-        that.list = res.pd
-        that.adviceprice = that.list[0].adviceprice
-        that.goodsname = that.list[0].goodsname
-        that.list.forEach((item, index, array) => {
-          item.num = 0
-        })
-        params = {
-          shopcode: localStorage.getItem('shopcode')
-        }
-        CommonModel.cartList(params, (res) => {
-          console.log(res)
-          that.totalPrice = res.pd.totalAmount
-          res.pd.items.forEach((item, index, array) => {
-            that.num += item.num
-            that.list.forEach((item2, index2, array2) => {
-              if (item2.goodsId === item.goodsId) {
-                item2.num = item.num
-              }
-            })
-          })
-          if (that.num > 0) {
-            that.flag = true
-          }
-        })
-      }, function (res) {
-      }, localStorage.getItem('token'))
+      this.init(params)
     }
   }
 </script>
@@ -256,7 +350,7 @@
       }
       .item {
         display: flex;
-        padding: 28/@rem 30/@rem;
+        padding: 0 30/@rem;
         height: 116/@rem;
         justify-content: space-between;
         align-items: center;
@@ -282,6 +376,7 @@
             border-bottom: 1px solid #cccccc;
             text-align: center;
             outline: none;
+            -webkit-appearance: none;
           }
           .item-ctrl-btn:first-child {
             border-radius: 8/@rem 0 0 8/@rem;

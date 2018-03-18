@@ -24,6 +24,7 @@
     overflow-y: hidden;
     position: fixed;
     font-size: 100%;
+    font-family: "PingFang SC";
   }
 
   #app {
@@ -41,7 +42,12 @@
   }
 </style>
 <style>
+  @font-face {
+    font-family: 'PingFang SC';
+    src: url('./common/ttf/PingFang Sc regular.ttf');
+  }
+
   .weui-dialog__btn_primary {
-    color: #ff73b7 !important;
+    color: #e54028 !important;
   }
 </style>

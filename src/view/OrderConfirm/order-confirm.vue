@@ -17,7 +17,7 @@
         </div>
       </div>
     </div>
-    <scroll ref="wrapper" :startY="startY" class="scroll-content">
+    <scroll ref="wrapper" :startY="startY" class="scroll-content" :data="list">
       <div class="main-body">
         <div class="goods-list border-1px">
           <div class="goods-list-title border-1px">
@@ -30,7 +30,7 @@
           <div class="goods-list-body">
             <div class="goods-list-body-item" v-for="(item, index) in list">
               <div class="goods-list-body-item-wrapper border-1px-e5">
-                <img src="./pic.jpg" alt="">
+                <img :src="item.picture" alt="">
                 <div class="goods-list-body-item-info">
                   <div class="goods-list-body-item-info-title">
                     <span>{{item.goodsname}}</span>
@@ -51,7 +51,7 @@
             <span>备注</span>
           </div>
           <div class="remark-body">
-            <textarea placeholder="(选填)" v-model="remark"></textarea>
+            <textarea placeholder="(选填)" v-model="remark" @blur="focusState = false" v-focus="focusState"></textarea>
           </div>
         </div>
       </div>
@@ -85,6 +85,15 @@
     components: {
       Scroll
     },
+    directives: {
+      focus: {
+        inserted: function (el, {value}) {
+          if (value) {
+            el.focus()
+          }
+        }
+      }
+    },
     data: function () {
       return {
         list: [],
@@ -93,7 +102,12 @@
         cutPrice: 0,
         totalPrice: 0,
         num: 0,
-        remark: ''
+        remark: '',
+        business: '',
+        shopcode: '',
+        shopname: '',
+        orderSmoney: 0,
+        focusState: false
       }
     },
     methods: {
@@ -101,6 +115,9 @@
         this.$router.push({
           path: '/shoppingCartList'
         })
+      },
+      focus: function () {
+        console.log(this.$refs)
       },
       goHome: function () {
         this.$router.push({
@@ -113,7 +130,7 @@
       },
       submit: function () {
         let params = {
-          shopcode: this.$route.query.shopCode,
+          shopcode: localStorage.getItem('shopcode'),
           remark: this.remark
         }
         CommonModel.submit(params, (res) => {
@@ -136,22 +153,42 @@
       }
       console.log(params)
       CommonModel.getShopDiscount(params, (res) => {
-        console.log(res)
         that.cutList = res.pd
         CommonModel.cartList(params, (res) => {
-          console.log(res)
           that.totalPrice = res.pd.totalAmount
           that.list = res.pd.items
           that.list.forEach((item, index, array) => {
+            let flag = false
+            let flagTwo = false
             that.num += item.num
-            that.cutList.forEach((item2, index2, array2) => {
-              if (item.categoryId === item2.CATEGORYID.toString()) {
-                let cutPrice = item.price * (item2.ZK / 100) * item.num
-                console.log(cutPrice)
-                that.cutPrice += cutPrice
+            if (item.fdiscount > 0) {
+              flagTwo = true
+              let cutPrice = item.price * (item.fdiscount / 100) * item.num
+              that.cutPrice += cutPrice
+            } else if (item.fprice > 0) {
+              flagTwo = true
+              let cutPrice = item.fprice * item.num
+              that.cutPrice += cutPrice
+            } else {
+              if (that.cutList.categoryDiscount.length > 0) {
+                that.cutList.categoryDiscount.forEach((item2, index2, array2) => {
+                  if (item.categoryId === item2.categoryId.toString()) {
+                    flag = true
+                    let cutPrice = item.price * (item2.zk / 100) * item.num
+                    that.cutPrice += cutPrice
+                  }
+                })
               }
-            })
+            }
+            if (flag === false && flagTwo === false) {
+              let cutPrice = item.price * (that.cutList.shopDiscount.zk / 100) * item.num
+              that.cutPrice += cutPrice
+            }
           })
+          that.cutPrice = that.cutPrice.toFixed(2)
+          if (that.cutList.length === 0) {
+            that.cutPrice = that.totalPrice.toFixed(2)
+          }
         })
       })
     }
@@ -319,8 +356,8 @@
             border-radius: 20/@rem;
             .dpr-font(12px);
             padding: 10/@rem 20/@rem;
-            outline: none;
             resize: none;
+            -webkit-appearance: none;
           }
           textarea::placeholder {
             color: #aaaaaa;

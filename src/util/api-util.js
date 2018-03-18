@@ -35,6 +35,12 @@ function httpRequest(api, params, successCallback, token) {
         'Authorization': 'Bearer ' + localStorage.getItem('token')
       }
     }).then(function (res) {
+      if (res.data.result === '099') {
+        alert('登入过期，请重新登入！')
+        localStorage.removeItem('shopcode')
+        localStorage.removeItem('token')
+        location.href = 'https://cs1.gzqqs.com/qqs/jsp/weixin/orderNew/dist/#/login'
+      }
       successCallback(res)
     })
   } else {
@@ -47,6 +53,12 @@ function httpRequest(api, params, successCallback, token) {
           'Authorization': 'Bearer ' + token
         }
       }).then(function (res) {
+        if (res.data.result === '099') {
+          alert('登入过期，请重新登入！')
+          localStorage.removeItem('shopcode')
+          localStorage.removeItem('token')
+          location.href = 'https://cs1.gzqqs.com/qqs/jsp/weixin/orderNew/dist/#/login'
+        }
         successCallback(res)
       })
     }
@@ -56,6 +68,13 @@ function httpRequest(api, params, successCallback, token) {
         url: url,
         params: params,
       }).then(function (res) {
+        console.warn(res)
+        if (res.data.result === '099') {
+          alert('登入过期，请重新登入！')
+          localStorage.removeItem('shopcode')
+          localStorage.removeItem('token')
+          location.href = 'https://cs1.gzqqs.com/qqs/jsp/weixin/orderNew/dist/#/login'
+        }
         successCallback(res)
       })
     }
