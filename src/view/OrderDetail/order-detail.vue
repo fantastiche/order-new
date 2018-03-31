@@ -34,11 +34,14 @@
                 <div class="goods-list-body-item-info">
                   <div class="goods-list-body-item-info-title">
                     <span>{{item.goodsname}}</span>
-                    <span>颜色：{{item.color}}</span>
+                    <div class="goods-list-body-item-content">
+                      <span class="red">颜色：{{item.color}}</span>
+                      <span>×{{item.num}}</span>
+                    </div>
                   </div>
                   <div class="goods-list-body-item-info-price">
-                    <span>￥{{item.price}}.00</span>
-                    <span>×{{item.num}}</span>
+                    <span class="grey">￥{{item.price}}.00</span>
+                    <span class="red">折后小计：{{item.sum}}</span>
                   </div>
                 </div>
               </div>
@@ -152,7 +155,7 @@
         this.popState = false
         let goods = []
         this.list.forEach((item, index, array) => {
-          if (item.goodsId !== 19000092 && item.goodsId !== 19000093 && item.goodsId !== 19000094 && item.goodsId !== 19000095 && item.goodsId !== 19000096) {
+          if (item.goodsId !== 19000092 && item.goodsId !== 19000093 && item.goodsId !== 19000094 && item.goodsId !== 19000095) {
             goods.push({
               goodsId: item.goodsId,
               num: item.num,
@@ -346,13 +349,16 @@
                   display: flex;
                   flex-direction: column;
                   line-height: 42/@rem;
+                  .goods-list-body-item-content {
+                    display: flex;
+                    justify-content: space-between;
+                    .dpr-font(12px);
+                    span:first-child {
+                      .dpr-font(12px);
+                    }
+                  }
                   span:first-child {
                     .dpr-font(16px);
-                    color: #333333;
-                  }
-                  span:nth-child(2) {
-                    .dpr-font(12px);
-                    color: #777777;
                   }
                 }
                 .goods-list-body-item-info-price {
@@ -520,5 +526,13 @@
     height: 100%;
     overflow: hidden;
     background: #e9edf2;
+  }
+
+  .red {
+    color: #e54028 !important;
+  }
+
+  .grey {
+    color: #333333 !important;
   }
 </style>

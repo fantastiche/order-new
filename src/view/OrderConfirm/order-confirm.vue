@@ -34,11 +34,14 @@
                 <div class="goods-list-body-item-info">
                   <div class="goods-list-body-item-info-title">
                     <span>{{item.goodsname}}</span>
-                    <span>颜色：{{item.color}}</span>
+                    <div class="goods-list-body-item-content">
+                      <span class="red">颜色：{{item.color}}</span>
+                      <span>×{{item.num}}</span>
+                    </div>
                   </div>
                   <div class="goods-list-body-item-info-price">
                     <span>￥{{item.price}}.00</span>
-                    <span>×{{item.num}}</span>
+                    <span>小计：￥{{item.je}}.00</span>
                   </div>
                 </div>
               </div>
@@ -51,7 +54,8 @@
             <span>备注</span>
           </div>
           <div class="remark-body">
-            <textarea placeholder="(选填)" v-model="remark" @blur="focusState = false" v-focus="focusState"></textarea>
+            <textarea placeholder="(选填)" v-model="remark" @blur="focusState = false" v-focus="focusState"
+                      @click="scrollTo" ref="btnInput"></textarea>
           </div>
         </div>
       </div>
@@ -116,6 +120,12 @@
           path: '/shoppingCartList'
         })
       },
+      scrollTo: function () {
+        setTimeout(() => {
+          this.$refs.wrapper.refresh()
+          this.$refs.wrapper.scrollToElement(this.$refs.btnInput)
+        }, 800)
+      },
       focus: function () {
         console.log(this.$refs)
       },
@@ -157,6 +167,18 @@
         CommonModel.cartList(params, (res) => {
           that.totalPrice = res.pd.totalAmount
           that.list = res.pd.items
+          if (that.list.length === 0) {
+            that.$vux.alert.show({
+              title: '提示',
+              content: '订单为空，请点击确定返回首页购物！',
+              onHide: function () {
+                that.$router.push({
+                  path: '/index'
+                })
+              }
+            })
+            return
+          }
           that.list.forEach((item, index, array) => {
             let flag = false
             let flagTwo = false
@@ -197,6 +219,10 @@
 
 <style lang="less" type="text/less" scoped>
   @import "../../common/less/mixin";
+
+  .red {
+    color: #e54028 !important;
+  }
 
   .content {
     position: relative;
@@ -303,6 +329,14 @@
                     .dpr-font(16px);
                     color: #333333;
                   }
+                  .goods-list-body-item-content {
+                    display: flex;
+                    justify-content: space-between;
+                    .dpr-font(12px);
+                    span:first-child {
+                      .dpr-font(12px);
+                    }
+                  }
                   span:nth-child(2) {
                     .dpr-font(12px);
                     color: #777777;
@@ -314,11 +348,11 @@
                   line-height: 60/@rem;
                   span:first-child {
                     .dpr-font(14px);
-                    color: #e54028;
+                    color: #333333;
                   }
                   span:last-child {
                     .dpr-font(14px);
-                    color: #333333;
+                    color: #e54028;
                   }
                 }
               }

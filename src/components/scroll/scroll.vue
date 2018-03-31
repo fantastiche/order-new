@@ -32,6 +32,10 @@
         type: Boolean,
         default: false
       },
+      pulldown: {
+        type: Boolean,
+        default: true
+      },
       beforeScroll: {
         type: Boolean,
         default: false
@@ -47,6 +51,10 @@
       startY: {
         type: Number,
         default: 0
+      },
+      pullDownRefresh: {
+        type: Boolean,
+        default: false
       }
     },
     mounted: function () {
@@ -62,6 +70,7 @@
         this.scroll = new BScroll(this.$refs.wrapper, {
           probeType: this.probeType,
           click: this.click,
+          pullDownRefresh: this.pullDownRefresh,
           eventPassthrough: this.direction === DIRECTION_V ? DIRECTION_H : DIRECTION_V,
           startY: this.startY
         })
@@ -78,6 +87,16 @@
             if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
               this.$emit('scrollToEnd')
             }
+          })
+        }
+
+        if (this.pulldown) {
+          this.scroll.on('scroll', (pos) => {
+            this.$emit('scroll', pos)
+          })
+
+          this.scroll.on('touchEnd', (pos) => {
+            this.$emit('touchEnd', pos)
           })
         }
 

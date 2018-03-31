@@ -11,7 +11,7 @@
           <div class="input-wrapper">
             <img src="./icon_user.png" alt="">
             <div class="input-wrapper-two">
-              <input type="text" placeholder="请输入您的订货账号" v-model="shopcode">
+              <input type="text" placeholder="请输入门店补货账号" v-model="shopcode">
             </div>
           </div>
           <div class="ctrl-btn">

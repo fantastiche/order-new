@@ -1,19 +1,19 @@
 <template>
   <div class="content-wrapper">
+    <div class="header">
+      <div class="header-btn" @click="goOrder">
+        <img src="./icon_order.png" alt="" class="icon-order">
+        <span>我的订单</span>
+      </div>
+      <div class="header-btn" @click="scan">
+        <img src="./icon_scan.png" alt="" class="icon-home">
+        <span>扫商品码</span>
+      </div>
+    </div>
     <scroll ref="wrapper" class="scroll-content" :data="list">
       <div class="content">
-        <div class="header">
-          <div class="header-btn" @click="goOrder">
-            <img src="./icon_order.png" alt="" class="icon-order">
-            <span>我的订单</span>
-          </div>
-          <div class="header-btn" @click="scan">
-            <img src="./icon_scan.png" alt="" class="icon-home">
-            <span>扫商品码</span>
-          </div>
-        </div>
         <swiper :list="picList" style="width:100%;margin:0 auto;" :aspect-ratio="750/750" dots-position="center"
-                :show-desc-mask="false" class="border-1px"></swiper>
+                :show-desc-mask="false" class="border-1px" :auto="true" :loop="true" :interval="3000"></swiper>
         <div class="title border-1px">
           <div class="title-name">{{goodsname}}</div>
           <div class="title-price">
@@ -196,7 +196,7 @@
               categoryId: item.categoryId,
               goodsname: item.goodsname,
               color: item.color,
-              picture: that.picture,
+              picture: item.picture,
               je: parseInt(item.adviceprice) * parseInt(item.num),
               fdiscount: item.fdiscount,
               fprice: item.fprice,
@@ -263,10 +263,9 @@
           that.goodsname = that.list[0].goodsname
           that.list.forEach((item, index, array) => {
             item.num = 0
+            console.log(item)
             if (item.picture) {
               let img = item.picture.split('?')[0] + '?x-oss-process=image/resize,m_lfit,h_750,w_750'
-              let imgSmall = item.picture.split('?')[0] + '?x-oss-process=image/resize,m_lfit,h_100,w_100'
-              that.picture = imgSmall
               that.picList.push({
                 url: 'javascript:',
                 img: img
@@ -304,33 +303,33 @@
 
   .content-wrapper {
     position: relative;
-    .content {
-      .header {
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 9999;
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      .header-btn {
+        margin: 20/@rem 30/@rem;
         display: flex;
-        width: 100%;
-        justify-content: space-between;
-        .header-btn {
-          margin: 20/@rem 30/@rem;
-          display: flex;
-          justify-content: center;
-          flex-direction: column;
-          align-items: center;
-          background: rgba(255, 255, 255, 0.9);
-          border-radius: 50%;
-          width: 110/@rem;
-          height: 110/@rem;
-          box-shadow: 0 5/@rem 8/@rem 0 rgba(0, 0, 0, 0.3);
-          span {
-            .dpr-font(10px);
-            color: #333;
-            margin-top: 3/@rem;
-          }
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        width: 110/@rem;
+        height: 110/@rem;
+        box-shadow: 0 5/@rem 8/@rem 0 rgba(0, 0, 0, 0.3);
+        span {
+          .dpr-font(10px);
+          color: #333;
+          margin-top: 3/@rem;
         }
       }
+    }
+    .content {
       .title {
         padding: 30/@rem;
         .title-name {
@@ -489,6 +488,10 @@
     text-align: center;
     color: #ffffff !important;
     border-radius: 14/@rem;
+  }
+
+  input {
+    border-radius: 0 !important;
   }
 
   .bounce-enter-active {

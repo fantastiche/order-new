@@ -259,11 +259,11 @@
         res.pd.items.forEach((item, index, array) => {
           that.num += item.num
         })
-      })
-      CommonModel.otherStore(params, (res) => {
-        that.stores = res.pd
-        that.stores.forEach((item, index, array) => {
-          item.checked = false
+        CommonModel.otherStore(params, (res) => {
+          that.stores = res.pd
+          that.stores.forEach((item, index, array) => {
+            item.checked = false
+          })
         })
       })
     }
@@ -338,7 +338,7 @@
         height: 58/@rem;
         text-align: center;
         width: 142/@rem;
-        border-radius: 29/@rem;
+        border-radius: 31/@rem;
         display: flex;
         justify-content: center;
         align-items: center;

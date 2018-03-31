@@ -32,7 +32,7 @@
         </div>
         <div v-if="editState" class="item border-1px-e5" v-for="(item,index) in list">
           <span class="icon-check-off" :class="{'icon-check-on':item.checked}" @click="check(item,index)"></span>
-          <img src="./pic.jpg" alt="">
+          <img :src="item.picture" alt="">
           <div class="item-info-wrapper-edit">
             <div class="item-info-title">
               <span>{{item.goodsname}}</span>
@@ -478,6 +478,10 @@
 <style lang="less" type="text/less" scoped>
   @import "../../common/less/mixin";
 
+  input {
+    border-radius: 0 !important;
+  }
+
   .dialog-content {
     color: #333333;
 
@@ -558,7 +562,7 @@
             .item-info-color {
               .dpr-font(12px);
               line-height: 42/@rem;
-              color: #777777;
+              color: #e54028;
             }
             .item-info-total {
               display: flex;
@@ -583,7 +587,7 @@
             .item-ctrl-price {
               .dpr-font(14px);
               line-height: 60/@rem;
-              color: #e54028;
+              color: #777777;
             }
             .item-ctrl {
               display: flex;
